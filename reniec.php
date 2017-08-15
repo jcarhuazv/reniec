@@ -1,6 +1,4 @@
 <?php
-	//ini_set('max_execution_time', 3600); //3600 segundos = 60 minutos
-	//ini_set("memory_limit", "5000M"); //5GB +-
 	class MyDB extends SQLite3 // PHP 5.3+
 	{
 		function __construct()
@@ -21,8 +19,7 @@
 				session_cache_limiter('private');
 				session_cache_expire(2); // 2 min.
 			}
-			$this->cc = new cURL(true,'https://cel.reniec.gob.pe/valreg/valreg.do',dirname(__FILE__).'/cookies.txt');
-
+			$this->cc = new cURL();
 			$this->db = new MyDB();
 			/*
 			if(!$db){
@@ -48,47 +45,40 @@
 			return true;
 		}
 
-		function CodValidacion($dni) // no test
+		function CodValidacion( $dni )
 		{
-			$hashNumbers = array('6', '7', '8', '9', '0', '1', '1', '2', '3', '4', '5');
-			$hashLetters = array('K', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J');
 			if ($dni!="" || strlen($dni) == 8)
 			{
 				$suma = 0;
 				$hash = array(5, 4, 3, 2, 7, 6, 5, 4, 3, 2);
-
-				$digit = strlen($dni);
-
-				$diff = count($hash) - $digit;
-
-				for ($i = $digit - 1; $i >= 0; $i--)
+				$suma = 5;
+				for( $i=2; $i<10; $i++ )
 				{
-					$suma += ($dni[$i] - 0) * $hash[$i + $diff];
+					$suma += ( $dni[$i-2] * $hash[$i] );
 				}
+				$entero = (int)($suma/11);
 
-				$suma = 11 - ($suma % 11);
+				$digito = 11 - ( $suma - $entero*11);
 
-				if ($suma == 11)
+				if ($digito == 10)
 				{
-					$suma = 0;
+					$digito = 0;
 				}
-				else if ($suma == 10)
+				else if ($digito == 11)
 				{
-					$suma = 1;
+					$digito = 1;
 				}
-				return $hashNumbers[$suma];
+				return $digito;
 			}
 			return "";
 		}
 
 		function DescargaCaptcha($name)
 		{
-			//return true;
-			$data = array();
 			$ref="https://cel.reniec.gob.pe/valreg/valreg.do";
 			$url="https://cel.reniec.gob.pe/valreg/codigo.do";
-			$this->cc->referer($ref);
-			$captcha = $this->cc->get($url,$data);
+			$this->cc->setReferer($ref);
+			$captcha = $this->cc->send($url);
 			if($captcha!=false)
 			{
 				file_put_contents($name, $captcha);
@@ -97,7 +87,7 @@
 			return false;
 		}
 
-		function ProcesaCaptha($name)
+		function ProcesaCaptha( $name = "captcha.jpg" )
 		{
 			$captcha = $this->GetSession("captcha");
 			$stime = $this->GetSession("stime");
@@ -164,12 +154,11 @@
 			return $rtn;
 		}
 
-		// BUSQUEDA DE DATOS EN RENIEC (Solo Nombres, Apellidos y Cod.Verificacion)
 		function BuscaDatosReniec($dni)
 		{
 			$rtn=array();
 			$Captcha = $this->ProcesaCaptha("captcha.jpg");
-			if( $dni!="" && $Captcha != false )
+			if( $dni!="" && strlen( $dni )==8 && $Captcha != false )
 			{
 				$data = array(
 					"accion" => "buscar",
@@ -177,35 +166,52 @@
 					"imagen" => $Captcha
 				);
 				$url = "https://cel.reniec.gob.pe/valreg/valreg.do";
-				$this->cc->referer($url);
-				$Page = $this->cc->post($url,$data);
-				$Page = utf8_encode($Page);
-				$posiN = strpos($Page,'<td height="63" class="style2" align="center">');
-				$Page = substr($Page,$posiN+48,254);
-				$posfN = strpos($Page,'<br>');
-				$Nombre = substr($Page,0,$posfN);
-				$Separado = explode("\r\n",$Nombre);
-				if(isset($Separado) && count($Separado)==3)
+				$this->cc->setReferer($url);
+				$Page = $this->cc->send($url, $data);
+
+				$patron='/<td height="63" class="style2" align="center">\r\n[ ]+(.*)\r\n[ ]+(.*)\r\n[ ]+(.*)<br>/';
+				$output = preg_match_all($patron, $Page, $matches, PREG_SET_ORDER);
+				if( isset($matches[0]) )
 				{
-					$Nombre = trim($Separado[1])." ".trim($Separado[2]).", ".trim($Separado[0]);
+					$rtn["Paterno"] = $matches[0][2];
+					$rtn["Materno"] = $matches[0][3];
+					$rtn["Nombre"]  = $matches[0][1];
 				}
-				else
-				{
-					$Nombre = preg_replace("[\s+]"," ", ($Nombre));
-					$Nombre = trim($Nombre);
-				}
+
 				$patron='/<font color=#ff0000>([A-Z0-9]+) <\/font>/';
 				$output = preg_match_all($patron, $Page, $matches, PREG_SET_ORDER);
-				if(isset($matches[0]))
+				if( isset($matches[0]) )
 				{
-					$rtn = array("DNI"=>$dni,"Nombre"=>$Nombre,"CodVerificacion"=>trim($matches[0][1]));
+					$rtn["DNI"] = $dni;
+					$rtn["CodVerificacion"] = trim($matches[0][1]);
 				}
-				if(count($rtn)>0)
+				if( count($rtn)>0 )
 				{
 					return $rtn;
 				}
 			}
 			return false;
+		}
+		function search( $dni, $inJSON = false )
+		{
+			$dni = trim($dni);
+			if( strlen( $dni )==8 && $dni!="" )
+			{
+				$result = $this->BuscaDatosReniec($dni);
+				if( $result!=false )
+				{
+					$rtn = array(
+						"success"	=> true,
+						"result"	=> $result
+					);
+					return ($inJSON==true)?json_encode($rtn,JSON_PRETTY_PRINT):$rtn;
+				}
+			}
+			$rtn = array(
+				"success"=>false,
+				"msg"=>"Nro de DNI no valido."
+			);
+			return ($inJSON==true)?json_encode($rtn,JSON_PRETTY_PRINT):$rtn;
 		}
 	}
 ?>
