@@ -160,7 +160,7 @@
 			return $this->_webpage;
 		}
 		// simplificado
-		public function send( string $url, array $post = array() )
+		public function send( $url, $post = array() )
 		{
 			if( count($post)!=0 )
 				$this->setPost( $post );
@@ -168,7 +168,7 @@
 			$this->createCurl( $url );
 			return $this->_webpage;
 		}
-		public function sendBinary(string $url, string $binary="")
+		public function sendBinary( $url, $binary="" )
 		{
 			if( $binary != "" )
 				$this->setBinary( $binary );
