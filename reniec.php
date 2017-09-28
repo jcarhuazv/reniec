@@ -3,7 +3,7 @@
 	{
 		function __construct()
 		{
-			$this->open('solver.db');
+			$this->open(__DIR__.'/solver.db');
 		}
 	}
 	class Reniec
@@ -173,9 +173,9 @@
 				$output = preg_match_all($patron, $Page, $matches, PREG_SET_ORDER);
 				if( isset($matches[0]) )
 				{
-					$rtn["Paterno"] = $matches[0][2];
-					$rtn["Materno"] = $matches[0][3];
-					$rtn["Nombre"]  = $matches[0][1];
+					$rtn["Paterno"] = utf8_encode($matches[0][2]);
+					$rtn["Materno"] = utf8_encode($matches[0][3]);
+					$rtn["Nombre"]  = utf8_encode($matches[0][1]);
 				}
 
 				$patron='/<font color=#ff0000>([A-Z0-9]+) <\/font>/';

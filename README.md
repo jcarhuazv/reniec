@@ -31,7 +31,7 @@ en caso de error
 ```sh
 Array
 (
-    [success] =>
+    [success] => 0
     [msg] => Nro de DNI no valido.
 )
 ```
