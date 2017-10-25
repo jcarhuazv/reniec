@@ -3,37 +3,54 @@ Obten los Nombres y apellidos de una Persona a partir de su Nro de DNI o CUI de 
 ### Metodo de Uso
 ```sh
 <?php
-    require ("curl.php");
-    require ("reniec.php");
+    require ("./src/autoload.php");
 
-    $persona = new Reniec();
+    $persona = new \Reniec\Reniec();
 	$dni="00000000";
-    print_r( $persona->search($dni) );
+    var_dump( $persona->search($dni) );
 ?>
 ```
 como resultado obtenemos el array
 ```sh
-Array
-(
-    [success] => 1
-    [result] => Array
-        (
-            [Paterno] => Ap_Paterno
-            [Materno] => Ap_Materno
-            [Nombre] => Nombres
-            [DNI] => 00000000
-            [CodVerificacion] => 0
-        )
+array(2) {
+  ["success"]=>
+  bool(true)
+  ["result"]=>
+  array(5) {
+    ["Nombre"]=>
+    string(5) "Nombres"
+    ["Paterno"]=>
+    string(5) "Ap. Paterno"
+    ["Materno"]=>
+    string(4) "AP. Materno"
+    ["DNI"]=>
+    string(8) "00000000"
+    ["CodVerificacion"]=>
+    string(1) "0"
+  }
+}
 
-)
 ```
 en caso de error
 ```sh
-Array
-(
-    [success] => 0
-    [msg] => Nro de DNI no valido.
-)
+array(2) {
+  ["success"]=>
+  bool(false)
+  ["msg"]=>
+  string(21) "Nro de DNI no valido."
+}
 ```
+### Instalacion mediante composer
+```sh
+	composer require -o "jossmp/reniec"
+```
+
+```sh
+<?php
+    require ("./vendor/autoload.php");
+    ...
+?>
+```
+
 [RENIEC]: <https://cel.reniec.gob.pe/valreg/valreg.do>
-[aqui]: <https://geekdev.ml/demos>
+[aqui]: <https://demos.geekdev.ml/reniec/>

@@ -1,36 +1,32 @@
 <?php
-	class MyDB extends SQLite3 // PHP 5.3+
-	{
-		function __construct()
-		{
-			$this->open(__DIR__.'/solver.db');
-		}
-	}
+	namespace Reniec;
 	class Reniec
 	{
 		var $cc;
 		var $db;
 		function __construct()
 		{
+			$this->db = new \Reniec\MyDB();
+			
+			$this->cc = new \Reniec\cURL();
 			date_default_timezone_set('America/Lima');
-			if(!session_id())
+			if( !session_id() )
 			{
 				session_start();
 				session_cache_limiter('private');
 				session_cache_expire(2); // 2 min.
 			}
-			$this->cc = new cURL();
-			$this->db = new MyDB();
-			/*
-			if(!$db){
-				echo $db->lastErrorMsg();
-			}
-			else{
-				echo "success\n";
-			}*/
 		}
-
-		function GetSession($indice)
+		
+		/* getSession
+		 * 
+		 * Retorna el valor de una session
+		 * 
+		 * @param : string $indice 		Indice o identificador de $_SESSION
+		 * 
+		 * @return: mixed $return 		Valor que se almacenara en $_SESSION[$indice]
+		 * */
+		 function getSession($indice)
 		{
 			if(isset($_SESSION[$indice]))
 			{
@@ -38,14 +34,31 @@
 			}
 			return false;
 		}
-
-		function PutSession($indice, $valor)
+		
+		/* setSession
+		 * 
+		 * Registra o modifica el array $_SESSION
+		 * 
+		 * @param : string $indice		Indice o identificador de $_SESSION
+		 * @param : mixed $valor		Valor que se almacenara en $_SESSION
+		 * 
+		 * @return: booleam true
+		 * */
+		function setSession($indice, $valor)
 		{
 			$_SESSION[$indice] = $valor;
 			return true;
 		}
-
-		function CodValidacion( $dni )
+		
+		/* getCode
+		 * 
+		 * retorna codigo de verificacion de un DNI o CUI
+		 * 
+		 * @param : string $dni 		CUI o numero de DNI
+		 * 
+		 * @return: string 				Codigo de verificacion
+		 * */
+		function getCode( $dni )
 		{
 			if ($dni!="" || strlen($dni) == 8)
 			{
@@ -72,8 +85,16 @@
 			}
 			return "";
 		}
-
-		function DescargaCaptcha($name)
+		
+		/* downCaptcha
+		 * 
+		 * Descargar la imagen captcha
+		 * 
+		 * @param : string $name 		Nombre con el que se guardara el Archivo
+		 * 
+		 * @return: booleam ( true | false )
+		 * */
+		function downCaptcha($name)
 		{
 			$ref="https://cel.reniec.gob.pe/valreg/valreg.do";
 			$url="https://cel.reniec.gob.pe/valreg/codigo.do";
@@ -86,20 +107,28 @@
 			}
 			return false;
 		}
-
-		function ProcesaCaptha( $name = "captcha.jpg" )
+		
+		/* getCaptcha
+		 * 
+		 * Retorna una string coN el valor de la imagen captcha
+		 * 
+		 * @param : string $name 		Nombre con el que se guardara el Archivo
+		 * 
+		 * @return: mixed 				string con valor del Captcha o false
+		 * */
+		function getCaptcha( $name = "captcha.jpg" )
 		{
-			$captcha = $this->GetSession("captcha");
-			$stime = $this->GetSession("stime");
-			if( $captcha!=false && $stime+(2*60) > time() )
+			$captcha = $this->getSession("captcha");
+			$stime = $this->getSession("stime");
+			if( $captcha != false && $stime+(2*60) > time() )
 			{
 				return $captcha;
 			}
 
-			$name = dirname(__FILE__)."/".$name;
-			if($this->DescargaCaptcha($name))
+			$name = __DIR__ . "/" . $name;
+			if($this->downCaptcha( $name ))
 			{
-				$image = @imagecreatefromjpeg($name);
+				$image = @imagecreatefromjpeg( $name );
 				if($image)
 				{
 					imagefilter($image, IMG_FILTER_GRAYSCALE);
@@ -115,20 +144,34 @@
 					imagecopyresampled($L3, $image, 0, 0, 76, 10, 25, 20, 25, 20);
 					imagecopyresampled($L4, $image, 0, 0, 106,15, 25, 20, 25, 20);
 
-					$query = "SELECT (SELECT Caracter FROM Diccionario WHERE Codigo1='".$this->ConvirteTexto($L1)."') AS c1,(SELECT Caracter FROM Diccionario WHERE Codigo2='".$this->ConvirteTexto($L2)."') AS c2,(SELECT Caracter FROM Diccionario WHERE Codigo3='".$this->ConvirteTexto($L3)."') AS c3,(SELECT Caracter FROM Diccionario WHERE Codigo4='".$this->ConvirteTexto($L4)."') AS c4";
+					$query = "SELECT (SELECT Caracter FROM Diccionario WHERE Codigo1='".$this->getText($L1)."') AS c1,(SELECT Caracter FROM Diccionario WHERE Codigo2='".$this->getText($L2)."') AS c2,(SELECT Caracter FROM Diccionario WHERE Codigo3='".$this->getText($L3)."') AS c3,(SELECT Caracter FROM Diccionario WHERE Codigo4='".$this->getText($L4)."') AS c4";
 
 					$rpt = $this->db->query($query);
 					if( $row = $rpt->fetchArray(SQLITE3_ASSOC) )
 					{
-						$this->PutSession("captcha", $row["c1"].$row["c2"].$row["c3"].$row["c4"]);
-						$this->PutSession("stime", time());
+						$this->setSession("captcha", $row["c1"].$row["c2"].$row["c3"].$row["c4"]);
+						$this->setSession("stime", time());
 						return $row["c1"].$row["c2"].$row["c3"].$row["c4"];
+					}
+					else
+					{
+						$this->setSession("captcha", false);
+						$this->setSession("stime", false);
 					}
 				}
 			}
 			return false;
 		}
-		function ConvirteTexto($image)
+		
+		/* getText
+		 * 
+		 * Retorna una string de 0s y 1s
+		 * 
+		 * @param : image $image 		Segmento de imagen del captcha
+		 * 
+		 * @return: string 				cadena de 0s y 1s
+		 * */
+		function getText($image)
 		{
 			$rtn="";
 			$w = imagesx($image);
@@ -153,17 +196,25 @@
 			}
 			return $rtn;
 		}
-
-		function BuscaDatosReniec($dni)
+		
+		/* SearchReniec
+		 * 
+		 * Realiza busqueda de datos enviado peticiones a la pagina de reniec
+		 * 
+		 * @param : string $dni 		CUI o numero de DNI
+		 * 
+		 * @return: array|false 		Array con datos encontrados en Reniec o false
+		 * */
+		function searchReniec($dni)
 		{
 			$rtn=array();
-			$Captcha = $this->ProcesaCaptha("captcha.jpg");
-			if( $dni!="" && strlen( $dni )==8 && $Captcha != false )
+			$Captcha = $this->getCaptcha("captcha.jpg");
+			if( $dni != "" && strlen( $dni ) == 8 && $Captcha != false )
 			{
 				$data = array(
-					"accion" => "buscar",
-					"nuDni" => $dni,
-					"imagen" => $Captcha
+					"accion" 	=> "buscar",
+					"nuDni" 	=> $dni,
+					"imagen" 	=> $Captcha
 				);
 				$url = "https://cel.reniec.gob.pe/valreg/valreg.do";
 				$this->cc->setReferer($url);
@@ -173,9 +224,9 @@
 				$output = preg_match_all($patron, $Page, $matches, PREG_SET_ORDER);
 				if( isset($matches[0]) )
 				{
+					$rtn["Nombre"]  = utf8_encode($matches[0][1]);
 					$rtn["Paterno"] = utf8_encode($matches[0][2]);
 					$rtn["Materno"] = utf8_encode($matches[0][3]);
-					$rtn["Nombre"]  = utf8_encode($matches[0][1]);
 				}
 
 				$patron='/<font color=#ff0000>([A-Z0-9]+) <\/font>/';
@@ -192,12 +243,21 @@
 			}
 			return false;
 		}
+		/* search
+		 * 
+		 * Crea un array mas amigable para retornarmas o convertirlas en json
+		 * 
+		 * @param : string $dni 		CUI o numero de DNI
+		 * @param : booleam $inJSON 	Cambia a true para retornar un string json
+		 * 
+		 * @return: array|string json 	Array o string JSON con datos encontrados
+		 * */
 		function search( $dni, $inJSON = false )
 		{
 			$dni = trim($dni);
 			if( strlen( $dni )==8 && $dni!="" )
 			{
-				$result = $this->BuscaDatosReniec($dni);
+				$result = $this->searchReniec($dni);
 				if( $result!=false )
 				{
 					$rtn = array(
@@ -211,7 +271,7 @@
 				"success"=>false,
 				"msg"=>"Nro de DNI no valido."
 			);
-			return ($inJSON==true)?json_encode($rtn,JSON_PRETTY_PRINT):$rtn;
+			return ($inJSON==true) ? json_encode($rtn,JSON_PRETTY_PRINT) : $rtn;
 		}
 	}
 ?>

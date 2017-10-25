@@ -1,4 +1,5 @@
 <?php
+	namespace Reniec;
 	class cURL
 	{
 		protected $_useragent = 'Mozilla/5.0 (X11; Fedora; Linux x86_64; rv:53.0) Gecko/20100101 Firefox/53.0';
@@ -21,6 +22,10 @@
 		protected $_binary;
 		protected $_binaryFields;
 
+		public    $proxy = false;
+		public    $proxy_host = '';
+		public    $proxy_port = '';
+		
 		public    $authentication = false;
 		public    $auth_name      = '';
 		public    $auth_pass      = '';
@@ -35,6 +40,20 @@
 			$this->_binary = $binary;
 
 			$this->_cookieFileLocation = dirname(__FILE__).'/cookie.txt';
+		}
+		
+		public function useProxy( $use )
+		{
+			$this->proxy = false;
+			if($use == true) $this->proxy = true;
+		}
+		public function setHost( $host )
+		{
+			$this->proxy_host = $host;
+		}
+		public function setPort( $port )
+		{
+			$this->proxy_port = $port;
 		}
 
 		public function useAuth( $use )
@@ -115,6 +134,16 @@
 			curl_setopt($s,CURLOPT_COOKIEJAR,$this->_cookieFileLocation);
 			curl_setopt($s,CURLOPT_COOKIEFILE,$this->_cookieFileLocation);
 
+			if($this->proxy == true)
+			{
+				if( $this->proxy_host != '' && $this->proxy_port != '' )
+				{
+					curl_setopt($s,CURLOPT_HTTPPROXYTUNNEL, 0);
+					curl_setopt($s,CURLOPT_PROXY, $this->proxy_host.':'.$this->proxy_port);
+					curl_setopt($s,CURLOPT_PROXYTYPE, CURLPROXY_SOCKS5);
+				}
+			}
+			
 			if($this->authentication == true)
 			{
 				curl_setopt($s, CURLOPT_USERPWD, $this->auth_name.':'.$this->auth_pass);
