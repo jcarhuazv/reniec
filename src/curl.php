@@ -25,6 +25,7 @@
 		public    $proxy = false;
 		public    $proxy_host = '';
 		public    $proxy_port = '';
+		public    $proxy_type = CURLPROXY_HTTP;
 		
 		public    $authentication = false;
 		public    $auth_name      = '';
@@ -40,6 +41,12 @@
 			$this->_binary = $binary;
 
 			$this->_cookieFileLocation = dirname(__FILE__).'/cookie.txt';
+			$this->s = curl_init();
+		}
+		
+		public function __destruct()
+		{
+			curl_close($this->s);
 		}
 		
 		public function useProxy( $use )
@@ -54,6 +61,12 @@
 		public function setPort( $port )
 		{
 			$this->proxy_port = $port;
+		}
+		public function setTypeProxy( $type ) //
+		{
+			// CURLPROXY_SOCKS5 | CURLPROXY_SOCKS4 | CURLPROXY_HTTP
+			// 5 | 4 | 0
+			$this->proxy_type = $type;
 		}
 
 		public function useAuth( $use )
@@ -124,59 +137,63 @@
 				$this->_url = $url;
 			}
 
-			$s = curl_init();
-			curl_setopt($s,CURLOPT_URL,$this->_url);
-			curl_setopt($s,CURLOPT_HTTPHEADER,$this->_httpheader);
-			curl_setopt($s,CURLOPT_TIMEOUT,$this->_timeout);
-			curl_setopt($s,CURLOPT_MAXREDIRS,$this->_maxRedirects);
-			curl_setopt($s,CURLOPT_RETURNTRANSFER,true);
-			curl_setopt($s,CURLOPT_FOLLOWLOCATION,$this->_followlocation);
-			curl_setopt($s,CURLOPT_COOKIEJAR,$this->_cookieFileLocation);
-			curl_setopt($s,CURLOPT_COOKIEFILE,$this->_cookieFileLocation);
+			//$this->s = curl_init();
+			curl_setopt($this->s, CURLOPT_SSL_VERIFYPEER, false);
+			curl_setopt($this->s, CURLOPT_URL,$this->_url);
+			curl_setopt($this->s, CURLOPT_HTTPHEADER,$this->_httpheader);
+			curl_setopt($this->s, CURLOPT_TIMEOUT,$this->_timeout);
+			curl_setopt($this->s, CURLOPT_MAXREDIRS,$this->_maxRedirects);
+			curl_setopt($this->s, CURLOPT_RETURNTRANSFER,true);
+			curl_setopt($this->s, CURLOPT_FOLLOWLOCATION,$this->_followlocation);
+			curl_setopt($this->s, CURLOPT_COOKIEJAR,$this->_cookieFileLocation);
+			curl_setopt($this->s, CURLOPT_COOKIEFILE,$this->_cookieFileLocation);
 
 			if($this->proxy == true)
 			{
 				if( $this->proxy_host != '' && $this->proxy_port != '' )
 				{
-					curl_setopt($s,CURLOPT_HTTPPROXYTUNNEL, 0);
-					curl_setopt($s,CURLOPT_PROXY, $this->proxy_host.':'.$this->proxy_port);
-					curl_setopt($s,CURLOPT_PROXYTYPE, CURLPROXY_SOCKS5);
+					curl_setopt($this->s, CURLOPT_HTTPPROXYTUNNEL, 0);
+					curl_setopt($this->s, CURLOPT_PROXY, $this->proxy_host.':'.$this->proxy_port);
+					curl_setopt($this->s, CURLOPT_PROXYTYPE, $this->proxy_type);
 				}
 			}
 			
 			if($this->authentication == true)
 			{
-				curl_setopt($s, CURLOPT_USERPWD, $this->auth_name.':'.$this->auth_pass);
+				curl_setopt($this->s, CURLOPT_USERPWD, $this->auth_name.':'.$this->auth_pass);
 			}
 
 			if($this->_post)
 			{
-				curl_setopt($s,CURLOPT_POST,true);
-				curl_setopt($s,CURLOPT_POSTFIELDS,$this->_postFields);
+				curl_setopt($this->s, CURLOPT_POST,true);
+				curl_setopt($this->s, CURLOPT_POSTFIELDS,$this->_postFields);
 			}
 
 			if($this->_binary)
 			{
-				curl_setopt($s,CURLOPT_BINARYTRANSFER,true);
-				curl_setopt($s,CURLOPT_POSTFIELDS, $this->_binaryFields);
-				$this->setHttpHeader( array('Content-Length'=>strlen($this->_binaryFields)) );
+				//curl_setopt($this->s, CURLOPT_FAILONERROR, true);
+				//curl_setopt($this->s, CURLOPT_HEADER, true);
+				//curl_setopt($this->s, CURLOPT_VERBOSE, true);
+				//curl_setopt($this->s, CURLOPT_CUSTOMREQUEST, 'POST');
+				curl_setopt($this->s, CURLOPT_BINARYTRANSFER, true);
+				curl_setopt($this->s, CURLOPT_POSTFIELDS, $this->_binaryFields);
 			}
 
-			if($this->_includeHeader)
+			if( $this->_includeHeader )
 			{
-				curl_setopt($s,CURLOPT_HEADER,true);
+				curl_setopt($this->s, CURLOPT_HEADER, true);
 			}
 
-			if($this->_noBody)
+			if( $this->_noBody )
 			{
-				curl_setopt($s,CURLOPT_NOBODY,true);
+				curl_setopt($this->s, CURLOPT_NOBODY, true);
 			}
 
-			curl_setopt($s,CURLOPT_USERAGENT,$this->_useragent);
-			curl_setopt($s,CURLOPT_REFERER,$this->_referer);
-			$this->_webpage = curl_exec($s);
-			$this->_status = curl_getinfo($s,CURLINFO_HTTP_CODE);
-			curl_close($s);
+			curl_setopt( $this->s, CURLOPT_USERAGENT, $this->_useragent );
+			curl_setopt( $this->s, CURLOPT_REFERER, $this->_referer );
+			$this->_webpage = curl_exec( $this->s );
+			$this->_status = curl_getinfo( $this->s, CURLINFO_HTTP_CODE );
+			//curl_close( $this->s );
 		}
 
 		public function getHttpStatus()
@@ -200,7 +217,11 @@
 		public function sendBinary( $url, $binary="" )
 		{
 			if( $binary != "" )
+			{
 				$this->setBinary( $binary );
+				$this->setHttpHeader( array('Content-Length'=>strlen($this->_binaryFields)) );
+				$this->setHttpHeader( array('Content-Type'=>'application/json;charset=UTF-8') );
+			}
 			$this->createCurl( $url );
 			return $this->_webpage;
 		}

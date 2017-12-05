@@ -5,11 +5,13 @@
 		<meta http-equiv="X-UA-Compatible" content="IE=edge">
 		<meta name = "viewport" content = "initial-scale = 1.0, user-scalable = no,  width=device-width">
 		<title>Consulta RENIEC sin Captcha Perú - GeekDev</title>
-		<meta name="description" content="Consulta de DNI RENIEC Perú sin captcha"/>
+		<meta name="description" content="Consulta RENIEC sin Captcha Perú, descarga este codigo desde demos.geekdev.ml"/>
 		<meta name="keywords" content="buscar dni, consultar dni peru, api rest consulta dni peru, reniec perú, consulta dni sin captcha, dni reniec 2017"/>
 		<meta property="og:locale" content="es_PE" />
 		<meta property="og:type" content="website" />
 		<meta property="og:title" content="Consulta de DNI RENIEC sin Captcha Perú - GeekDev" />
+		<meta property="og:description" content="Consulta RENIEC sin Captcha Perú, descarga este codigo desde demos.geekdev.ml" />
+		<meta property="og:image" content="https://drive.google.com/uc?id=0BxTe_c1GIOkoSmtJMFZNRi1mNWs&export=view" />
 		<!-- Bootstrap -->
 		<!-- Latest compiled and minified CSS -->
 		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous">
@@ -41,17 +43,18 @@
 				</div>
 			</div>
 			</form>
-			<div class="p-2 clearfix"></div>
 			
-			<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
-			<!-- ads_Content -->
-			<ins class="adsbygoogle"
-				 style="display:inline-block;width:728px;height:90px"
-				 data-ad-client="ca-pub-9492853452655822"
-				 data-ad-slot="0854297903"></ins>
-			<script>
-			(adsbygoogle = window.adsbygoogle || []).push({});
-			</script>
+			<div class="mx-auto text-center pt-2">
+				<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+				<!-- ads_Content -->
+				<ins class="adsbygoogle"
+					 style="display:inline-block;width:728px;height:90px"
+					 data-ad-client="ca-pub-9492853452655822"
+					 data-ad-slot="0854297903"></ins>
+				<script>
+				(adsbygoogle = window.adsbygoogle || []).push({});
+				</script>
+			</div>
 			
 			<div class="result">
 				<ul class="nav nav-tabs" role="tablist">
