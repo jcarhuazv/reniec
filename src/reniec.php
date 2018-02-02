@@ -260,14 +260,14 @@
 				$result = $this->searchReniec($dni);
 				if( $result!=false )
 				{
-					$rtn = array(
+					$rtn = (object)array(
 						"success"	=> true,
-						"result"	=> $result
+						"result"	=> (object)$result
 					);
 					return ($inJSON==true)?json_encode($rtn,JSON_PRETTY_PRINT):$rtn;
 				}
 			}
-			$rtn = array(
+			$rtn = (object)array(
 				"success"=>false,
 				"msg"=>"Nro de DNI no valido."
 			);
