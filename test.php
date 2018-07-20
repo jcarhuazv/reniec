@@ -1,9 +1,9 @@
 <?php
-	require ("./src/autoload.php");
-	//require ("./vendor/autoload.php");
+	//require ("./src/autoload.php");
+	require ("./vendor/autoload.php");
 	
 	$persona = new \Reniec\Reniec();
-	$dni = "00000000";
+	$dni = "44274795";
 
 	// ---------- json
 	echo $persona->search( $dni, true );

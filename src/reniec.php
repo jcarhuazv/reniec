@@ -6,7 +6,7 @@
 		var $list_error = array();
 		function __construct()
 		{
-			$this->cc = new \CURL\cURL();
+			$this->cc = new cURL();
 			$this->cc->setReferer("http://clientes.reniec.gob.pe/padronElectoral2012/padronPEMDistrito.htm");
 		}
 
