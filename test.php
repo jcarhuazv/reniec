@@ -3,20 +3,15 @@
 	//require ("./vendor/autoload.php");
 	
 	$persona = new \Reniec\Reniec();
-	$dni="00000000";
-	var_dump( $persona->search($dni) );
-	
+	$dni = "00000000";
+
 	// ---------- json
-	echo $persona->search($dni, true);
+	echo $persona->search( $dni, true );
 	
-	// ---------- 
-	$yo = $persona->searchReniec( $dni );
-	if($yo!=false)
+	// ---------- object
+	$yo = $persona->search( $dni );
+	if( $yo!=false )
 	{
-		$Nombre 			= $yo["Nombre"];
-		$Paterno 			= $yo["Paterno"];
-		$Materno 			= $yo["Materno"];
-		$dni 				= $yo["DNI"];
-		$CodVerificacion 	= $yo["CodVerificacion"];
+		echo $yo->result->DNI." - ".$yo->result->CodVerificacion." | ".$yo->result->Nombres." ".$yo->result->Apellidos."\n";
 	}
 ?>
