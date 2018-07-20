@@ -1,5 +1,5 @@
 # CONSULTA [RENIEC]
-Obten los Nombres y apellidos de una Persona a partir de su Nro de DNI o CUI de cuidados Peruanos. puedes ver una demo [aqui].
+Obten los Nombres y apellidos de una Persona a partir de su Nro de DNI o CUI de cuidados Peruanos. puedes ver una demo [aqui]. Tambien puedes usar [datos-peru] que incluye 2 fuentes extras.
 ### Metodo de Uso
 ```sh
 <?php
@@ -14,13 +14,12 @@ Obten los Nombres y apellidos de una Persona a partir de su Nro de DNI o CUI de 
 	if( $persona->success != false ) // si la busqueda es exitosa
 	{
 		echo "DNI: " . $persona->result->DNI . "-" . $persona->result->CodVerificacion . "<br>";
-		echo "Nombre: " . $persona->result->Nombre . "<br>";
-		echo "Apellido Paterno: " . $persona->result->Paterno . "<br>";
-		echo "Apellido Materno: " . $persona->result->Materno . "<br>";
+		echo "Nombre: " . $persona->result->Nombres . "<br>";
+		echo "Apellido: " . $persona->result->Apellido . "<br>";
 	}
 	else // en caso de no encontrar resultados
 	{
-		echo $persona->msg;
+		echo $persona->message;
 	}
 ?>
 ```
@@ -38,4 +37,5 @@ Obten los Nombres y apellidos de una Persona a partir de su Nro de DNI o CUI de 
 ```
 
 [RENIEC]: <https://cel.reniec.gob.pe/valreg/valreg.do>
-[aqui]: <https://demos.geekdev.ml/reniec/>
+[aqui]: <https://demos.geekdev.ml/datos-peru/>
+[datos-peru]: <https://github.com/JossMP/datos-peru>
