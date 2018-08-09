@@ -1,5 +1,5 @@
 # CONSULTA [RENIEC]
-Obten los Nombres y apellidos de una Persona a partir de su Nro de DNI o CUI de cuidados Peruanos. puedes ver una demo [aqui]. Tambien puedes usar [datos-peru] que incluye 2 fuentes extras.
+Obten los Nombres y apellidos de una Persona a partir de su Nro de DNI o CUI de ciudadanos Peruanos. Tambien puedes usar [datos-peru] que incluye 2 fuentes extras(Ministerio del trabajo y essalud).
 ### Metodo de Uso
 ```sh
 <?php
