@@ -1,5 +1,5 @@
 <?php
-	namespace Reniec;
+	namespace CURL;
 	class cURL
 	{
 		protected $_useragent = 'Mozilla/5.0 (X11; Fedora; Linux x86_64; rv:53.0) Gecko/20100101 Firefox/53.0';
@@ -40,7 +40,7 @@
 			$this->_includeHeader = $includeHeader;
 			$this->_binary = $binary;
 
-			$this->_cookieFileLocation = dirname(__FILE__).'/cookie.txt';
+			$this->_cookieFileLocation = __DIR__ . '/cookie.txt';
 			$this->s = curl_init();
 		}
 		
@@ -114,14 +114,22 @@
 		public function setPost( $postFields = array() )
 		{
 			$this->_binary = false;
-			$this->_post = true;
+			$this->_post = false;
+			if(count($postFields)>0)
+			{
+				$this->_post = true;
+			}
 			$this->_postFields = http_build_query($postFields);
 		}
 
 		public function setBinary( $postBinaryFields = "" )
 		{
 			$this->_post = false;
-			$this->_binary = true;
+			$this->_binary = false;
+			if(strlen($postBinaryFields)>0)
+			{
+				$this->_binary = true;
+			}
 			$this->_binaryFields = $postBinaryFields;
 		}
 
@@ -138,6 +146,10 @@
 			}
 
 			//$this->s = curl_init();
+			//curl_setopt($this->s, CURLOPT_FAILONERROR, true);
+			//curl_setopt($this->s, CURLOPT_HEADER, true);
+			//curl_setopt($this->s, CURLOPT_VERBOSE, true);
+			//curl_setopt($this->s, CURLOPT_CUSTOMREQUEST, 'POST');
 			curl_setopt($this->s, CURLOPT_SSL_VERIFYPEER, false);
 			curl_setopt($this->s, CURLOPT_URL,$this->_url);
 			curl_setopt($this->s, CURLOPT_HTTPHEADER,$this->_httpheader);
@@ -165,16 +177,12 @@
 
 			if($this->_post)
 			{
-				curl_setopt($this->s, CURLOPT_POST,true);
-				curl_setopt($this->s, CURLOPT_POSTFIELDS,$this->_postFields);
+				curl_setopt($this->s, CURLOPT_POST, true);
+				curl_setopt($this->s, CURLOPT_POSTFIELDS, $this->_postFields);
 			}
 
 			if($this->_binary)
 			{
-				//curl_setopt($this->s, CURLOPT_FAILONERROR, true);
-				//curl_setopt($this->s, CURLOPT_HEADER, true);
-				//curl_setopt($this->s, CURLOPT_VERBOSE, true);
-				//curl_setopt($this->s, CURLOPT_CUSTOMREQUEST, 'POST');
 				curl_setopt($this->s, CURLOPT_BINARYTRANSFER, true);
 				curl_setopt($this->s, CURLOPT_POSTFIELDS, $this->_binaryFields);
 			}
@@ -208,6 +216,7 @@
 		// simplificado
 		public function send( $url, $post = array() )
 		{
+			$this->_post = false;
 			if( count($post)!=0 )
 				$this->setPost( $post );
 
@@ -216,11 +225,13 @@
 		}
 		public function sendBinary( $url, $binary="" )
 		{
+			$this->_binary = false;
 			if( $binary != "" )
 			{
 				$this->setBinary( $binary );
 				$this->setHttpHeader( array('Content-Length'=>strlen($this->_binaryFields)) );
-				$this->setHttpHeader( array('Content-Type'=>'application/json;charset=UTF-8') );
+				$this->setHttpHeader( array('Content-Type'=>'application/json;charset=utf-8') );
+				$this->setHttpHeader( array('Access-Control-Allow-Origin'=>'*') );
 			}
 			$this->createCurl( $url );
 			return $this->_webpage;
