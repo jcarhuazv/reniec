@@ -1,8 +1,4 @@
-<<<<<<< HEAD
 # Datos Perú
-=======
-# RENIEC PERU (Movido a [Datos Peru])
->>>>>>> f1fe98f7d4a1699937596c65496abdfdf48ca158
 
 Busca datos de ciudadanos Peruanos a partir de su CUI o Numero de DNI.
 
@@ -90,9 +86,5 @@ Donaciones: [PayPal]
 
 Copyright (C), 2018 Josue Mazco GNU General Public License 3 (http://www.gnu.org/licenses/)
 
-<<<<<<< HEAD
-=======
-[Datos Peru]: <https://github.com/JossMP/datos-peru/>
->>>>>>> f1fe98f7d4a1699937596c65496abdfdf48ca158
 [Ver demo]: <https://www.peruanosenlinea.com/busca-personas-por-el-dni/>
 [PayPal]: <https://www.paypal.me/JossMP>
